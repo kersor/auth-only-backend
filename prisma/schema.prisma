@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    Int    @id @default(autoincrement())
+  email String @unique
+  password String
+  // Флаг, который говорит о том, чподтвердили ли почту
+  isActivated Boolean @default(false)
+  // Ссылка для активации
+  activationLink String?
+
+  refreshToken Token?
+}
+
+
+model Token {
+  id    Int    @id @default(autoincrement())
+  refreshToken String
+  
+  userId Int @unique
+  user User @relation(fields: [userId], references: [id])
+}

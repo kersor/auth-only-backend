@@ -1,5 +1,13 @@
-Были скачаны такие npm пакеты для работы 
+# Авторизация/Регистрация на NestJS
 
+
+## Технологии:
+- NestJS
+- TypeScript
+- Prisma
+- PostgreSQL
+
+## Модули:
 @nestjs/core - основной пакет NestJS.
 @nestjs/common - общие компоненты и утилиты.
 @nestjs/platform-express - интеграция с Express.
@@ -12,3 +20,4 @@ bcrypt - для хеширования паролей.
 class-validator - для валидации данных.
 class-transformer - для трансформации объектов.
 dotenv - для работы с переменными окружения.
+uuid - для генерации рандомных ссылок
