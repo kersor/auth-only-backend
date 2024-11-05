@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegistrDto } from './dto/create.dto';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -17,6 +17,7 @@ export class AuthController {
     })
     return res.json({
       access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
       user: {
         ...tokens.user
       }
@@ -33,12 +34,14 @@ export class AuthController {
   async logout () {
 
   }
-
+ 
   // Активация аккаунта по ссылки
   @Get('/activate/:link')
-  async activate () {
+  async activate (@Param('link') link: string, @Res() res: Response) {
   
-  }
+    await this.authService.activate(link)
+    return res.redirect(process.env.CLIENT_URL) 
+  } 
 
   // Обновление ACCESS токена
   @Get('/refresh')
