@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegistrDto } from './dto/create.dto';
+import { LoginDto, RegistrDto } from './dto/create.dto';
 import { Request, Response } from 'express';
 
 @Controller('auth')
@@ -10,23 +10,26 @@ export class AuthController {
 
   @Post('/registr')
   async registr (@Body() dto: RegistrDto, @Res() res: Response) {
-    const tokens = await this.authService.registr(dto);
-    res.cookie('refreshToken', tokens.refreshToken, {
+    const data = await this.authService.registr(dto);
+    
+    res.cookie('refreshToken', data.refreshToken, {
       httpOnly: true, 
       maxAge: 30 * 24 * 60 * 60 * 1000
     })
-    return res.json({
-      access_token: tokens.accessToken,
-      refresh_token: tokens.refreshToken,
-      user: {
-        ...tokens.user
-      }
-    })
+
+    return res.json(data)
   }
 
   @Post('/login')
-  async login () {
+  async login (@Body() dto: LoginDto, @Res() res: Response) {
+    const data = await this.authService.login(dto)
 
+    res.cookie('refreshToken', data.refreshToken, {
+      httpOnly: true, 
+      maxAge: 30 * 24 * 60 * 60 * 1000
+    })
+
+    return res.json(data)
   }
 
   // Выйти из аккаунта

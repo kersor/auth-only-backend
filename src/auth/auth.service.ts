@@ -1,6 +1,6 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { RegistrDto } from './dto/create.dto';
+import { LoginDto, RegistrDto } from './dto/create.dto';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt'
 import * as uuid from 'uuid'
@@ -17,7 +17,6 @@ export class AuthService {
     ) {}
 
     async registr (dto: RegistrDto) {
-
         const candidate = await this.userService.foundOneUser(dto.email)
         if(candidate) throw new HttpException('Пользователь с таким Email уже есть', HttpStatus.BAD_REQUEST)
 
@@ -104,8 +103,8 @@ export class AuthService {
         const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
     
         return {
-          accessToken,
-          refreshToken,
+            accessToken,
+            refreshToken,
         };
     }
 
@@ -121,5 +120,27 @@ export class AuthService {
         }
         const token = await this.prisma.token.create({data: {userId: id, refreshToken: refreshToken}})
         return token
+    }
+
+    async login (dto: LoginDto) {
+   
+        const candidate = await this.userService.foundOneUser(dto.email)
+        if(!candidate) throw new HttpException('Неверный Email или Пароль', HttpStatus.BAD_REQUEST)
+
+        const password = bcrypt.compareSync(dto.password, candidate.password)
+        if(!password) throw new HttpException('Неверный Email или Пароль', HttpStatus.BAD_REQUEST)
+
+        const { id, email, isActivated } = candidate
+
+        const tokens = await this.generateToken({id, email, isActivated})
+
+        return {
+            ...tokens,
+            user: {
+                id,
+                email,
+                isActivated
+            }
+        }
     }
 }
