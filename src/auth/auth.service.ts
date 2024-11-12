@@ -122,8 +122,12 @@ export class AuthService {
         return token
     }
 
+    async removeToken (refreshToken: string) {
+        const token = await this.prisma.token.delete({where: {refreshToken: refreshToken}})
+        return token
+    }
+
     async login (dto: LoginDto) {
-   
         const candidate = await this.userService.foundOneUser(dto.email)
         if(!candidate) throw new HttpException('Неверный Email или Пароль', HttpStatus.BAD_REQUEST)
 
@@ -142,5 +146,11 @@ export class AuthService {
                 isActivated
             }
         }
+    }
+
+    async logout (refreshToken: string) {
+        const token = await this.removeToken(refreshToken)
+        console.log(token)
+        return token
     }
 }

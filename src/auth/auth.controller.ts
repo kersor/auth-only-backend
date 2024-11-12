@@ -11,7 +11,7 @@ export class AuthController {
   @Post('/registr')
   async registr (@Body() dto: RegistrDto, @Res() res: Response) {
     const data = await this.authService.registr(dto);
-    
+
     res.cookie('refreshToken', data.refreshToken, {
       httpOnly: true, 
       maxAge: 30 * 24 * 60 * 60 * 1000
@@ -34,8 +34,14 @@ export class AuthController {
 
   // Выйти из аккаунта
   @Post('/logout')
-  async logout () {
-
+  async logout (@Req() req: Request, @Res() res: Response) {
+    console.log(req.cookies)
+    const { refreshToken } = req.cookies
+    await this.authService.logout(refreshToken)
+    res.clearCookie('refreshToken')
+    return {
+      sussus: true
+    }
   }
  
   // Активация аккаунта по ссылки

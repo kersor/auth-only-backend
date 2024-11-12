@@ -22,7 +22,7 @@ model User {
 
 model Token {
   id    Int    @id @default(autoincrement())
-  refreshToken String
+  refreshToken String @unique
   
   userId Int @unique
   user User @relation(fields: [userId], references: [id])
