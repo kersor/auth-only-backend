@@ -141,16 +141,15 @@ export class AuthService {
         return {
             ...tokens,
             user: {
-                id,
+                id, 
                 email,
                 isActivated
-            }
+            } 
         }
     }
 
     async logout (refreshToken: string) {
         const token = await this.removeToken(refreshToken)
-        console.log(token)
         return token
     }
 }

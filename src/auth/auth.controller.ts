@@ -35,13 +35,13 @@ export class AuthController {
   // Выйти из аккаунта
   @Post('/logout')
   async logout (@Req() req: Request, @Res() res: Response) {
-    console.log(req.cookies)
     const { refreshToken } = req.cookies
+
     await this.authService.logout(refreshToken)
-    res.clearCookie('refreshToken')
-    return {
-      sussus: true
-    }
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+    })
+    return res.status(200).send({status: 'sussus'});
   }
  
   // Активация аккаунта по ссылки
