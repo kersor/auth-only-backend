@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { LoginDto, RegistrDto } from './dto/create.dto';
 import { UsersService } from 'src/users/users.service';
@@ -97,7 +97,6 @@ export class AuthService {
         });
     }
 
-
     async generateToken (payload: any) {
         const accessToken = this.jwtService.sign(payload, { expiresIn: '30m' });
         const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
@@ -111,7 +110,7 @@ export class AuthService {
     async saveToken (id: number, refreshToken: string) {
         const tokenData = await this.prisma.token.findFirst({where: {userId: id}})
         if(tokenData) {
-            await this.prisma.token.update({
+            return await this.prisma.token.update({
                 where: {userId: id},
                 data: {
                     refreshToken: refreshToken
@@ -137,6 +136,7 @@ export class AuthService {
         const { id, email, isActivated } = candidate
 
         const tokens = await this.generateToken({id, email, isActivated})
+        await this.saveToken(id, tokens.refreshToken)
 
         return {
             ...tokens,
@@ -151,5 +151,60 @@ export class AuthService {
     async logout (refreshToken: string) {
         const token = await this.removeToken(refreshToken)
         return token
+    }
+
+    async refresh(refreshToken: string) {
+        if(!refreshToken) {
+            console.log(1)
+            throw new UnauthorizedException()
+        }
+        const data = await this.validateRefreshToken(refreshToken)
+        const tokenFromDB = await this.foundToken(refreshToken)
+
+        if(!data || !tokenFromDB) {
+            throw new UnauthorizedException()
+        }
+        
+        // Делаем поиск пользавателя на тот случай, если он изменил своим данные.
+        // refreshToken хранится долго
+        const user = await this.prisma.user.findFirst({where: {id: data.id}})
+
+        const { id, email, isActivated } = user
+
+        const tokens = await this.generateToken({id, email, isActivated})
+
+        return {
+            ...tokens,
+            user: {
+                id, 
+                email,
+                isActivated
+            } 
+        }
+    }
+
+    async validateRefreshToken (token: string) {
+        try {
+            const data = this.jwtService.verify(token, {secret: process.env.JWT_SECRET_KEY})
+            return data
+        } catch (error) {
+            return null
+        }
+    }
+
+    async validateAccessToken (token: string) {
+        try {
+            const data = this.jwtService.verify(token, {secret: process.env.JWT_SECRET_KEY})
+            return data
+        } catch (error) {
+            return null
+        }
+    }
+
+    async foundToken (token: string) {
+        console.log('token: ', token)
+        const data = await this.prisma.token.findUnique({where: {refreshToken: token}})
+        console.log('data: ', data)
+        return data
     }
 }

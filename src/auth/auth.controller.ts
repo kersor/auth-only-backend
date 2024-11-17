@@ -54,7 +54,16 @@ export class AuthController {
 
   // Обновление ACCESS токена
   @Get('/refresh')
-  async refresh () {
+  async refresh (@Req() req: Request, @Res() res: Response) {
+    const {refreshToken} = req.cookies
 
+    const data = await this.authService.refresh(refreshToken)
+    
+    res.cookie('refreshToken', data.refreshToken, {
+      httpOnly: true, 
+      maxAge: 30 * 24 * 60 * 60 * 1000
+    })
+
+    return res.json(data)
   }
 }
