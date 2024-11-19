@@ -8,22 +8,37 @@ datasource db {
 }
 
 model User {
-  id    Int    @id @default(autoincrement())
-  email String @unique
-  password String
-  // Флаг, который говорит о том, чподтвердили ли почту
-  isActivated Boolean @default(false)
-  // Ссылка для активации
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  password      String
+  isActivated   Boolean   @default(false)
   activationLink String?
-
-  refreshToken Token?
+  
+  refreshToken  Token?
+  roles         UserRole[]
 }
 
-
 model Token {
-  id    Int    @id @default(autoincrement())
-  refreshToken String @unique
+  id            Int      @id @default(autoincrement())
+  refreshToken  String   @unique
   
-  userId Int @unique
-  user User @relation(fields: [userId], references: [id])
+  userId        Int      @unique
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Role {
+  id            Int       @id @default(autoincrement())
+  name          String    @unique
+  fullName      String
+  
+  users         UserRole[]
+}
+
+model UserRole {
+  userId        Int
+  roleId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  role          Role     @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId]) 
 }
