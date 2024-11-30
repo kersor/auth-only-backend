@@ -20,18 +20,32 @@ export class AuthService {
         const candidate = await this.userService.foundOneUser(dto.email)
         if(candidate) throw new HttpException('Пользователь с таким Email уже есть', HttpStatus.BAD_REQUEST)
 
+        const role = await this.prisma.role.findUnique({where: {name: 'USER'}})
+
         const hashPassword = await bcrypt.hash(dto.password, 5)
         const activationLink = uuid.v4()
         const user = await this.prisma.user.create({
             data: {
                 email: dto.email,
                 password: hashPassword,
-                activationLink: activationLink
+                activationLink: activationLink,
+                roles: {
+                    create: [{
+                        roleId: role.id
+                    }] 
+                }
+            },
+            include: {
+                roles: {
+                    include: {
+                        role: true
+                    }
+                }
             }
         })
-        const {id, email, isActivated} = user
-        await this.sendActivationMail(email, `${process.env.API_URL}/api/auth/activate/${activationLink}`)
-        const tokens = await this.generateToken({id, email, isActivated})
+        const {id, email, isActivated, roles} = user
+        // await this.sendActivationMail(email, `${process.env.API_URL}/api/auth/activate/${activationLink}`)
+        const tokens = await this.generateToken({id, email, isActivated, roles})
         await this.saveToken(id, tokens.refreshToken)
 
         return {
@@ -40,6 +54,7 @@ export class AuthService {
                 id,
                 email,
                 isActivated,
+                roles
             }
         }
     }
