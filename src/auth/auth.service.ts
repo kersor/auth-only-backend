@@ -167,7 +167,6 @@ export class AuthService {
         // Делаем поиск пользавателя на тот случай, если он изменил своим данные.
         // refreshToken хранится долго
         const user = await this.prisma.user.findFirst({where: {id: data.id}})
-        console.log(data, user)
         const { id, email, isActivated } = user
 
         const tokens = await this.generateToken({id, email, isActivated})
