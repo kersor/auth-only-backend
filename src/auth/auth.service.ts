@@ -44,7 +44,7 @@ export class AuthService {
             }
         })
         const {id, email, isActivated, roles} = user
-        // await this.sendActivationMail(email, `${process.env.API_URL}/api/auth/activate/${activationLink}`)
+        await this.sendActivationMail(email, `${process.env.API_URL}/api/auth/activate/${activationLink}`)
         const tokens = await this.generateToken({id, email, isActivated, roles})
         await this.saveToken(id, tokens.refreshToken)
 
@@ -143,14 +143,15 @@ export class AuthService {
 
     async login (dto: LoginDto) {
         const candidate = await this.userService.foundOneUser(dto.email)
+
         if(!candidate) throw new HttpException('Неверный Email или Пароль', HttpStatus.BAD_REQUEST)
 
         const password = bcrypt.compareSync(dto.password, candidate.password)
         if(!password) throw new HttpException('Неверный Email или Пароль', HttpStatus.BAD_REQUEST)
 
-        const { id, email, isActivated } = candidate
+        const { id, email, isActivated, roles } = candidate
 
-        const tokens = await this.generateToken({id, email, isActivated})
+        const tokens = await this.generateToken({id, email, isActivated, roles})
         await this.saveToken(id, tokens.refreshToken)
 
         return {
@@ -158,7 +159,8 @@ export class AuthService {
             user: {
                 id, 
                 email,
-                isActivated
+                isActivated,
+                roles
             } 
         }
     }
@@ -215,9 +217,7 @@ export class AuthService {
     }
 
     async foundToken (token: string) {
-        console.log('token: ', token)
         const data = await this.prisma.token.findUnique({where: {refreshToken: token}})
-        console.log('data: ', data)
         return data
     }
 }

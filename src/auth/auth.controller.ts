@@ -17,6 +17,8 @@ export class AuthController {
       maxAge: 30 * 24 * 60 * 60 * 1000
     })
 
+    res.cookie('accessToken', data.accessToken)
+
     return res.json(data)
   }
 
@@ -28,6 +30,8 @@ export class AuthController {
       httpOnly: true, 
       maxAge: 30 * 24 * 60 * 60 * 1000
     })
+
+    res.cookie('accessToken', data.accessToken)
 
     return res.json(data)
   }
@@ -41,6 +45,8 @@ export class AuthController {
     res.clearCookie('refreshToken', {
       httpOnly: true,
     })
+
+    res.clearCookie('accessToken')
     return res.status(200).send({status: 'sussus'});
   }
  

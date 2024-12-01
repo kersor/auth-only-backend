@@ -9,7 +9,20 @@ export class UsersService {
     ) {}
 
     async foundOneUser (email: string) {
-        const candidate = await this.prisma.user.findFirst({where: {email: email}})
+        const candidate = await this.prisma.user.findFirst(
+            {
+                where: {
+                    email: email
+                },
+                include: {
+                    roles: {
+                        include: {
+                            role: true
+                        }
+                    }
+                }
+            }
+        )
         return candidate
     }
 
